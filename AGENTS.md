@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Use only sourced human recordings for recitations; never fall back to browser-generated speech, because the product requires authentic human audio.

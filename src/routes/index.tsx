@@ -10,6 +10,8 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "مواقيت الصلاة حسب موقعك، تنبيهات الأذان والأذكار، وتلاوة صوتية للأذكار والأدعية مع مسبحة إلكترونية." },
       { property: "og:title", content: "أذكار الحصن — مواقيت الصلاة والأذكار" },
       { property: "og:description", content: "مواقيت دقيقة، تنبيهات، أذكار الصباح والمساء بتلاوة صوتية، ومسبحة." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: App,
@@ -40,14 +42,32 @@ const CATS = [
   { key: "evening", ar: "أذكار المساء" },
   { key: "sleep", ar: "أذكار النوم" },
 ];
+const TABS: Tab[] = ["prayer", "adhkar", "tasbeeh", "duas", "settings"];
+const HISN_AUDIO = "/audio/adhkar";
+const ADHAN_AUDIO = "/audio/adhan/adhan.mp3";
+const ADHKAR_AUDIO: Record<string, Record<string, string>> = {
+  morning: { m1: "69", m2: "78", m3: "79", m4: "87", m5: "82", m6: "82", m7: "83", m8: "86", m9: "94", m10: "95" },
+  evening: { e1: "69", e2: "78", e3: "79", e4: "87", e5: "80", e6: "83", e7: "86", e8: "216" },
+  sleep: { s1: "102", s2: "103", s3: "104", s4: "105", s5: "91" },
+};
+const DUA_AUDIO = [
+  "/audio/duas/2-201.mp3",
+  "/audio/duas/3-8.mp3",
+  `${HISN_AUDIO}/79.mp3`,
+  `${HISN_AUDIO}/120.mp3`,
+  `${HISN_AUDIO}/136.mp3`,
+  `${HISN_AUDIO}/122.mp3`,
+  null,
+  "/audio/duas/14-40.mp3",
+];
 
 type Settings = {
   lat?: number; lng?: number; city?: string;
   method: string; hanafi: boolean;
   notifyPrayer: boolean; notifyAdhkar: boolean; before: number;
-  rate: number; dark: boolean;
+  dark: boolean;
 };
-const DEFAULT: Settings = { method: "Egyptian", hanafi: false, notifyPrayer: true, notifyAdhkar: true, before: 0, rate: 0.85, dark: false };
+const DEFAULT: Settings = { method: "Egyptian", hanafi: false, notifyPrayer: true, notifyAdhkar: true, before: 0, dark: false };
 
 function useStored<T>(key: string, init: T) {
   const [v, setV] = useState<T>(init);
@@ -62,15 +82,22 @@ function useStored<T>(key: string, init: T) {
 
 const fmt = (d: Date) => d.toLocaleTimeString("ar-EG", { hour: "numeric", minute: "2-digit" });
 
-function speak(text: string, rate: number, onEnd?: () => void) {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = "ar-SA"; u.rate = rate;
-  const v = window.speechSynthesis.getVoices().find((x) => x.lang.startsWith("ar"));
-  if (v) u.voice = v;
-  u.onend = () => onEnd?.();
-  window.speechSynthesis.speak(u);
+let activeAudio: HTMLAudioElement | null = null;
+function stopAudio() {
+  activeAudio?.pause();
+  if (activeAudio) activeAudio.currentTime = 0;
+  activeAudio = null;
+}
+
+function playAudio(source: string, onEnd?: () => void, onError?: () => void) {
+  if (typeof Audio === "undefined") return;
+  stopAudio();
+  const audio = new Audio(source);
+  activeAudio = audio;
+  audio.preload = "auto";
+  audio.onended = () => { if (activeAudio === audio) activeAudio = null; onEnd?.(); };
+  audio.onerror = () => { if (activeAudio === audio) activeAudio = null; onError?.(); };
+  void audio.play().catch(() => { if (activeAudio === audio) activeAudio = null; onError?.(); });
 }
 
 function beep() {
@@ -85,10 +112,10 @@ function beep() {
   } catch {}
 }
 
-function notify(title: string, body: string, voice: string, rate: number) {
+function notify(title: string, body: string, audioSource: string) {
   beep();
   if ("Notification" in window && Notification.permission === "granted") new Notification(title, { body, icon: "/favicon.ico" });
-  setTimeout(() => speak(voice, rate), 1600);
+  setTimeout(() => playAudio(audioSource), 1600);
 }
 
 function App() {
@@ -96,6 +123,7 @@ function App() {
   const [s, setS] = useStored<Settings>("hisn_settings", DEFAULT);
   const [now, setNow] = useState<Date | null>(null);
   const [locErr, setLocErr] = useState("");
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => { setNow(new Date()); const i = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(i); }, []);
   useEffect(() => { document.documentElement.classList.toggle("dark", s.dark); }, [s.dark]);
@@ -141,17 +169,24 @@ function App() {
       if (s.notifyPrayer) for (const p of PRAYERS) {
         if (p.key === "sunrise") continue;
         const t = (pt as any)[p.key] as Date;
-        if (s.before > 0) at(new Date(t.getTime() - s.before * 60000), () => notify(`اقتربت صلاة ${p.ar}`, `بعد ${s.before} دقيقة`, `اقترب موعد صلاة ${p.ar}`, s.rate));
-        at(t, () => notify(`حان وقت صلاة ${p.ar}`, `${s.city ?? ""} — ${fmt(t)}`, `حان الآن موعد أذان صلاة ${p.ar}. الله أكبر الله أكبر`, s.rate));
+        if (s.before > 0) at(new Date(t.getTime() - s.before * 60000), () => notify(`اقتربت صلاة ${p.ar}`, `بعد ${s.before} دقيقة`, ADHAN_AUDIO));
+        at(t, () => notify(`حان وقت صلاة ${p.ar}`, `${s.city ?? ""} — ${fmt(t)}`, ADHAN_AUDIO));
       }
       if (s.notifyAdhkar) {
-        at(new Date(pt.sunrise.getTime() - 20 * 60000), () => notify("أذكار الصباح", "حان وقت أذكار الصباح", "حان وقت أذكار الصباح", s.rate));
-        at(new Date(pt.asr.getTime() + 15 * 60000), () => notify("أذكار المساء", "حان وقت أذكار المساء", "حان وقت أذكار المساء", s.rate));
-        at(new Date(pt.isha.getTime() + 90 * 60000), () => notify("أذكار النوم", "لا تنسَ أذكار النوم", "لا تنس أذكار النوم", s.rate));
+        at(new Date(pt.sunrise.getTime() - 20 * 60000), () => notify("أذكار الصباح", "حان وقت أذكار الصباح", `${HISN_AUDIO}/69.mp3`));
+        at(new Date(pt.asr.getTime() + 15 * 60000), () => notify("أذكار المساء", "حان وقت أذكار المساء", `${HISN_AUDIO}/69.mp3`));
+        at(new Date(pt.isha.getTime() + 90 * 60000), () => notify("أذكار النوم", "لا تنسَ أذكار النوم", `${HISN_AUDIO}/102.mp3`));
       }
     }
     return () => timers.forEach(clearTimeout);
-  }, [times, s.notifyPrayer, s.notifyAdhkar, s.before, s.rate, s.city]);
+  }, [times, s.notifyPrayer, s.notifyAdhkar, s.before, s.city]);
+
+  const changeTabBySwipe = (direction: "left" | "right") => {
+    const current = TABS.indexOf(tab);
+    const nextIndex = direction === "left" ? current + 1 : current - 1;
+    const nextTab = TABS[nextIndex];
+    if (nextTab) { stopAudio(); setTab(nextTab); }
+  };
 
   let next: { ar: string; t: Date } | null = null;
   if (times && now) {
@@ -181,11 +216,27 @@ function App() {
         </div>
       </header>
 
-      <main className="flex-1 p-4">
+      <main
+        className="flex-1 touch-pan-y p-4"
+        onTouchStart={(event) => {
+          const touch = event.changedTouches[0];
+          if (touch) touchStart.current = { x: touch.clientX, y: touch.clientY };
+        }}
+        onTouchEnd={(event) => {
+          const start = touchStart.current;
+          const touch = event.changedTouches[0];
+          touchStart.current = null;
+          if (!start || !touch) return;
+          const dx = touch.clientX - start.x;
+          const dy = touch.clientY - start.y;
+          if (Math.abs(dx) < 65 || Math.abs(dx) < Math.abs(dy) * 1.25) return;
+          changeTabBySwipe(dx < 0 ? "left" : "right");
+        }}
+      >
         {tab === "prayer" && <PrayerTab times={times} now={now} s={s} locate={locate} locErr={locErr} />}
-        {tab === "adhkar" && <AdhkarTab rate={s.rate} />}
+        {tab === "adhkar" && <AdhkarTab />}
         {tab === "tasbeeh" && <TasbeehTab />}
-        {tab === "duas" && <DuasTab rate={s.rate} />}
+        {tab === "duas" && <DuasTab />}
         {tab === "settings" && <SettingsTab s={s} setS={setS} locate={locate} />}
       </main>
 
@@ -231,21 +282,25 @@ function PrayerTab({ times, now, s, locate, locErr }: any) {
   );
 }
 
-function AdhkarTab({ rate }: { rate: number }) {
+function AdhkarTab() {
   const [cat, setCat] = useState("morning");
   const [prog, setProg] = useStored<Record<string, number>>("hisn_prog", {});
   const [playing, setPlaying] = useState<string | null>(null);
   const [auto, setAuto] = useState(false);
   const list: any[] = ADHKAR_DATA[cat] || [];
   const done = list.filter((d) => (prog[`${cat}_${d.id}`] || 0) >= d.count).length;
-  useEffect(() => () => window.speechSynthesis?.cancel(), []);
+  const [audioError, setAudioError] = useState("");
+  useEffect(() => () => stopAudio(), []);
 
   const play = (i: number, chain: boolean) => {
     const d = list[i]; if (!d) { setPlaying(null); setAuto(false); return; }
+    const audioId = ADHKAR_AUDIO[cat]?.[d.id];
+    if (!audioId) { setAudioError("لا يتوفر تسجيل بشري لهذا الذكر حالياً"); setPlaying(null); setAuto(false); return; }
+    setAudioError("");
     setPlaying(d.id);
-    speak(d.textAr, rate, () => chain ? play(i + 1, true) : setPlaying(null));
+    playAudio(`${HISN_AUDIO}/${audioId}.mp3`, () => chain ? play(i + 1, true) : setPlaying(null), () => { setPlaying(null); setAuto(false); setAudioError("تعذّر تشغيل التسجيل. تحقق من اتصال الإنترنت."); });
   };
-  const stop = () => { window.speechSynthesis.cancel(); setPlaying(null); setAuto(false); };
+  const stop = () => { stopAudio(); setPlaying(null); setAuto(false); };
 
   return (
     <div>
@@ -257,6 +312,7 @@ function AdhkarTab({ rate }: { rate: number }) {
         <span className="text-xs font-bold">{done}/{list.length}</span>
         <button onClick={() => auto ? stop() : (setAuto(true), play(0, true))} className="rounded-full bg-accent px-3 py-1 text-xs font-bold text-accent-foreground">{auto ? "⏹ إيقاف" : "▶ تلاوة الكل"}</button>
       </div>
+      {audioError && <p className="mb-3 rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">{audioError}</p>}
       <div className="space-y-3">
         {list.map((d, i) => {
           const k = `${cat}_${d.id}`; const c = prog[k] || 0; const fin = c >= d.count;
@@ -299,13 +355,15 @@ function TasbeehTab() {
   );
 }
 
-function DuasTab({ rate }: { rate: number }) {
+function DuasTab() {
   const [q, setQ] = useState(""); const [playing, setPlaying] = useState<number | null>(null);
+  const [audioError, setAudioError] = useState("");
   const list = (DUAS_DATA as any[]).filter((d) => !q || d.titleAr.includes(q) || d.textAr.includes(q));
-  useEffect(() => () => window.speechSynthesis?.cancel(), []);
+  useEffect(() => () => stopAudio(), []);
   return (
     <div>
       <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث في الأدعية..." className="mb-3 w-full rounded-xl border bg-card px-4 py-2" />
+      {audioError && <p className="mb-3 rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">{audioError}</p>}
       <div className="space-y-3">
         {list.map((d, i) => (
           <div key={i} className="rounded-2xl border bg-card p-4">
@@ -313,7 +371,7 @@ function DuasTab({ rate }: { rate: number }) {
             <p className="text-lg leading-loose">{d.textAr}</p>
             {d.virtueAr && <p className="mt-2 text-xs text-muted-foreground">✨ {d.virtueAr}</p>}
             <div className="mt-3 flex gap-2">
-              <button onClick={() => { if (playing === i) { window.speechSynthesis.cancel(); setPlaying(null); } else { setPlaying(i); speak(d.textAr, rate, () => setPlaying(null)); } }} className="rounded-full border px-3 py-1 text-sm">{playing === i ? "⏸ إيقاف" : "🔊 استماع"}</button>
+              <button disabled={!DUA_AUDIO[DUAS_DATA.indexOf(d)]} title={!DUA_AUDIO[DUAS_DATA.indexOf(d)] ? "التسجيل البشري غير متاح حالياً" : undefined} onClick={() => { const source = DUA_AUDIO[DUAS_DATA.indexOf(d)]; if (!source) return; if (playing === i) { stopAudio(); setPlaying(null); } else { setAudioError(""); setPlaying(i); playAudio(source, () => setPlaying(null), () => { setPlaying(null); setAudioError("تعذّر تشغيل التسجيل. تحقق من اتصال الإنترنت."); }); } }} className="rounded-full border px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-45">{playing === i ? "⏸ إيقاف" : DUA_AUDIO[DUAS_DATA.indexOf(d)] ? "🔊 استماع" : "لا يوجد تسجيل"}</button>
               <button onClick={() => navigator.clipboard?.writeText(d.textAr)} className="rounded-full border px-3 py-1 text-sm">📋 نسخ</button>
             </div>
           </div>
@@ -344,10 +402,10 @@ function SettingsTab({ s, setS, locate }: { s: Settings; setS: (f: (o: Settings)
         <Row label="تنبيه الأذان"><Toggle v={s.notifyPrayer} on={() => up({ notifyPrayer: !s.notifyPrayer })} /></Row>
         <Row label="تذكير قبل الصلاة"><select value={s.before} onChange={(e) => up({ before: +e.target.value })} className="rounded-lg border bg-background px-2 py-1 text-sm">{[0, 5, 10, 15, 30].map((m) => <option key={m} value={m}>{m ? `${m} دقيقة` : "بدون"}</option>)}</select></Row>
         <Row label="تذكير الأذكار (صباح/مساء/نوم)"><Toggle v={s.notifyAdhkar} on={() => up({ notifyAdhkar: !s.notifyAdhkar })} /></Row>
-        <Row label="تجربة التنبيه"><button onClick={() => notify("تجربة", "هكذا سيظهر التنبيه", "حان الآن موعد الصلاة", s.rate)} className="rounded-lg border px-3 py-1 text-sm">🔔 تجربة</button></Row>
+        <Row label="تجربة التنبيه"><button onClick={() => notify("تجربة", "هكذا سيظهر التنبيه", ADHAN_AUDIO)} className="rounded-lg border px-3 py-1 text-sm">🔔 تجربة</button></Row>
       </section>
       <section className="rounded-2xl border bg-card px-4">
-        <Row label={`سرعة التلاوة: ${s.rate.toFixed(2)}`}><input type="range" min={0.5} max={1.3} step={0.05} value={s.rate} onChange={(e) => up({ rate: +e.target.value })} /></Row>
+        <Row label="التلاوات"><span className="max-w-48 text-left text-xs text-muted-foreground">صوت بشري مسجّل، والآيات بصوت الشيخ مشاري العفاسي</span></Row>
         <Row label="الوضع الليلي"><Toggle v={s.dark} on={() => up({ dark: !s.dark })} /></Row>
       </section>
       <p className="text-center text-xs text-muted-foreground">تعمل التنبيهات أثناء فتح التطبيق في المتصفح.</p>

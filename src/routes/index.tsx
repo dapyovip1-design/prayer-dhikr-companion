@@ -43,22 +43,22 @@ const CATS = [
   { key: "sleep", ar: "أذكار النوم" },
 ];
 const TABS: Tab[] = ["prayer", "adhkar", "tasbeeh", "duas", "settings"];
-const HISN_AUDIO = "https://www.hisnmuslim.com/audio/ar";
-const ADHAN_AUDIO = "https://cdn.aladhan.com/audio/adhans/a1.mp3";
+const HISN_AUDIO = "/audio/adhkar";
+const ADHAN_AUDIO = "/audio/adhan/adhan.mp3";
 const ADHKAR_AUDIO: Record<string, Record<string, string>> = {
   morning: { m1: "69", m2: "78", m3: "79", m4: "87", m5: "82", m6: "82", m7: "83", m8: "86", m9: "94", m10: "95" },
   evening: { e1: "69", e2: "78", e3: "79", e4: "87", e5: "80", e6: "83", e7: "86", e8: "216" },
   sleep: { s1: "102", s2: "103", s3: "104", s4: "105", s5: "91" },
 };
 const DUA_AUDIO = [
-  "https://everyayah.com/data/Alafasy_128kbps/002201.mp3",
-  "https://everyayah.com/data/Alafasy_128kbps/003008.mp3",
+  "/audio/duas/2-201.mp3",
+  "/audio/duas/3-8.mp3",
   `${HISN_AUDIO}/79.mp3`,
   `${HISN_AUDIO}/120.mp3`,
   `${HISN_AUDIO}/136.mp3`,
   `${HISN_AUDIO}/122.mp3`,
   null,
-  "https://everyayah.com/data/Alafasy_128kbps/014040.mp3",
+  "/audio/duas/14-40.mp3",
 ];
 
 type Settings = {

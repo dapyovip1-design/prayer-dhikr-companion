@@ -151,3 +151,13 @@
 }
 
 body { font-family: 'Cairo', sans-serif; -webkit-tap-highlight-color: transparent; }
+
+/* App-like feel: no text selection, copy/paste menu, or tap highlight */
+html, body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+input, textarea { -webkit-user-select: text; user-select: text; }

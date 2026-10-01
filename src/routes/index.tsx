@@ -156,6 +156,18 @@ function playAudio(source: string, onEnd?: () => void, onError?: () => void) {
   void audio.play().catch(() => { if (activeAudio === audio) activeAudio = null; onError?.(); });
 }
 
+let clickCtx: AudioContext | null = null;
+function clickSound() {
+  try {
+    clickCtx ??= new AudioContext();
+    const ctx = clickCtx; if (ctx.state === "suspended") void ctx.resume();
+    const o = ctx.createOscillator(); const g = ctx.createGain();
+    o.type = "triangle"; o.frequency.setValueAtTime(1400, ctx.currentTime); o.frequency.exponentialRampToValueAtTime(500, ctx.currentTime + 0.04);
+    g.gain.setValueAtTime(0.35, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+    o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.07);
+  } catch {}
+}
+
 function beep() {
   try {
     const ctx = new AudioContext();
@@ -183,6 +195,11 @@ function App() {
 
   useEffect(() => { setNow(new Date()); const i = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(i); }, []);
   useEffect(() => { document.documentElement.classList.toggle("dark", s.dark); }, [s.dark]);
+  useEffect(() => {
+    const block = (e: Event) => { if (!(e.target as HTMLElement)?.closest?.("input,textarea")) e.preventDefault(); };
+    document.addEventListener("contextmenu", block); document.addEventListener("selectstart", block);
+    return () => { document.removeEventListener("contextmenu", block); document.removeEventListener("selectstart", block); };
+  }, []);
   const lang: Lang = (DICT as any)[s.lang] ? s.lang : "ar";
   const t = DICT[lang];
   curLocale = LOCALE[lang];
@@ -406,7 +423,7 @@ function TasbeehTab() {
   const [idx, setIdx] = useState(0);
   const [st, setSt] = useStored<{ count: number; total: number }>("hisn_tasbeeh", { count: 0, total: 0 });
   const d = TASBEEH_LIST[idx]; const pct = Math.min(1, st.count / d.target); const C = 527.7;
-  const tap = () => { setSt((o) => ({ count: o.count + 1, total: o.total + 1 })); if (st.count + 1 === d.target) navigator.vibrate?.(200); else navigator.vibrate?.(15); };
+  const tap = () => { setSt((o) => ({ count: o.count + 1, total: o.total + 1 })); clickSound(); try { navigator.vibrate?.(st.count + 1 === d.target ? [120, 60, 220] : 40); } catch {} };
   return (
     <div className="text-center">
       <div className="mb-4 flex flex-wrap justify-center gap-2">

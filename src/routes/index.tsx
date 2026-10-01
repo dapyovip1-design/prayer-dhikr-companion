@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Coordinates, CalculationMethod, PrayerTimes, Madhab, Qibla } from "adhan";
 import { ADHKAR_DATA, DUAS_DATA, TASBEEH_LIST } from "@/lib/adhkar-data";
 
@@ -453,7 +453,7 @@ function DuasTab() {
   );
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+function Row({ label, children }: { label: string; children: ReactNode }) {
   return <div className="flex items-center justify-between gap-3 border-b py-3 last:border-0"><span className="text-sm font-semibold">{label}</span>{children}</div>;
 }
 function Toggle({ v, on }: { v: boolean; on: () => void }) {

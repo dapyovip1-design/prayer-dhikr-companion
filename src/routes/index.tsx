@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Coordinates, CalculationMethod, PrayerTimes, Madhab, Qibla } from "adhan";
 import { ADHKAR_DATA, DUAS_DATA, TASBEEH_LIST } from "@/lib/adhkar-data";
 
@@ -79,7 +79,7 @@ const DICT = {
     needLoc: "نحتاج موقعك لحساب المواقيت بدقة", locate: "تحديد الموقع", upcoming: "القادمة", qibla: "اتجاه القبلة", fromNorth: "من الشمال", method: "طريقة الحساب", hanafi: "حنفي", jumhur: "جمهور",
     tabs: ["المواقيت", "الأذكار", "المسبحة", "الأدعية", "الإعدادات"], cats: { morning: "أذكار الصباح", evening: "أذكار المساء", sleep: "أذكار النوم" },
     noAudio: "لا يتوفر تسجيل بشري لهذا الذكر حالياً", audioFail: "تعذّر تشغيل التسجيل. تحقق من اتصال الإنترنت.", stop: "إيقاف", playAll: "تلاوة الكل", listen: "استماع", done: "تم", reset: "إعادة تعيين التقدّم",
-    total: "الإجمالي", zero: "تصفير", search: "ابحث في الأدعية...", noRec: "لا يوجد تسجيل", recUnavailable: t.recUnavailable, copy: "نسخ",
+    total: "الإجمالي", zero: "تصفير", search: "ابحث في الأدعية...", noRec: "لا يوجد تسجيل", recUnavailable: "التسجيل البشري غير متاح حالياً", copy: "نسخ",
     location: "الموقع", notSet: "غير محدد", update: "تحديث", hanafiAsr: "العصر حسب المذهب الحنفي", browserNotif: "إشعارات المتصفح", enabled: "مفعّلة ✓", unsupported: "غير مدعومة", enable: "تفعيل",
     adhanAlert: "تنبيه الأذان", before: "تذكير قبل الصلاة", minutes: (m: number) => `${m} دقيقة`, none: "بدون", adhkarAlert: "تذكير الأذكار (صباح/مساء/نوم)", testAlert: "تجربة التنبيه", test: "تجربة",
     testTitle: "تجربة", testBody: "هكذا سيظهر التنبيه", recitations: "التلاوات", recitationsDesc: "صوت بشري مسجّل، والآيات بصوت الشيخ مشاري العفاسي", dark: "الوضع الليلي", language: "اللغة",
@@ -114,7 +114,7 @@ const DICT = {
 type Dict = typeof DICT.ar;
 const LangCtx = createContext<{ lang: Lang; t: Dict }>({ lang: "ar", t: DICT.ar });
 const useT = () => useContext(LangCtx);
-const pName = (lang: Lang, key: string) => PRAYER_NAMES[lang][key];
+const pName = (lang: Lang, key: string): string => PRAYER_NAMES[lang][key] ?? key;
 
 type Settings = {
   lat?: number; lng?: number; city?: string;
@@ -304,7 +304,7 @@ function App() {
       </main>
 
       <nav className="fixed inset-x-0 bottom-0 z-10 mx-auto flex max-w-md justify-around border-t bg-card/95 py-2 backdrop-blur">
-        {(["🕌", "📖", "📿", "🤲", "⚙️"] as const).map((i, idx) => { const k = TABS[idx]; const l = t.tabs[idx]; return (
+        {(["🕌", "📖", "📿", "🤲", "⚙️"] as const).map((i, idx) => { const k = TABS[idx]!; const l = t.tabs[idx]; return (
           <button key={k} onClick={() => setTab(k)} className={`flex flex-col items-center rounded-xl px-3 py-1 text-[11px] font-semibold ${tab === k ? "bg-secondary text-primary" : "text-muted-foreground"}`}>
             <span className="text-lg">{i}</span>{l}
           </button>
@@ -453,7 +453,7 @@ function DuasTab() {
   );
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+function Row({ label, children }: { label: string; children: ReactNode }) {
   return <div className="flex items-center justify-between gap-3 border-b py-3 last:border-0"><span className="text-sm font-semibold">{label}</span>{children}</div>;
 }
 function Toggle({ v, on }: { v: boolean; on: () => void }) {

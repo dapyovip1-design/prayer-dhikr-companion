@@ -304,7 +304,7 @@ function App() {
       </main>
 
       <nav className="fixed inset-x-0 bottom-0 z-10 mx-auto flex max-w-md justify-around border-t bg-card/95 py-2 backdrop-blur">
-        {(["🕌", "📖", "📿", "🤲", "⚙️"] as const).map((i, idx) => { const k = TABS[idx]; const l = t.tabs[idx]; return (
+        {(["🕌", "📖", "📿", "🤲", "⚙️"] as const).map((i, idx) => { const k = TABS[idx]!; const l = t.tabs[idx]; return (
           <button key={k} onClick={() => setTab(k)} className={`flex flex-col items-center rounded-xl px-3 py-1 text-[11px] font-semibold ${tab === k ? "bg-secondary text-primary" : "text-muted-foreground"}`}>
             <span className="text-lg">{i}</span>{l}
           </button>

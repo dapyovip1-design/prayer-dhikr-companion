@@ -505,6 +505,7 @@ function SettingsTab({ s, setS, locate }: { s: Settings; setS: (f: (o: Settings)
       <section className="rounded-2xl border bg-card px-4">
         <Row label={t.recitations}><span className="max-w-48 text-end text-xs text-muted-foreground">{t.recitationsDesc}</span></Row>
         <Row label={t.dark}><Toggle v={s.dark} on={() => up({ dark: !s.dark })} /></Row>
+        <Row label={t.followUs}><a href="https://www.instagram.com/dowpe_1?stkn=Y3JlZTl5MDgxZ3I4" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-l from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] px-3 py-1 text-sm font-semibold text-white">📷 Instagram</a></Row>
       </section>
       <p className="text-center text-xs text-muted-foreground">{t.note}</p>
     </div>

@@ -84,7 +84,7 @@ const DICT = {
     adhanAlert: "تنبيه الأذان", before: "تذكير قبل الصلاة", minutes: (m: number) => `${m} دقيقة`, none: "بدون", adhkarAlert: "تذكير الأذكار (صباح/مساء/نوم)", testAlert: "تجربة التنبيه", test: "تجربة",
     testTitle: "تجربة", testBody: "هكذا سيظهر التنبيه", recitations: "التلاوات", recitationsDesc: "صوت بشري مسجّل، والآيات بصوت الشيخ مشاري العفاسي", dark: "الوضع الليلي", language: "اللغة",
     note: "تعمل التنبيهات أثناء فتح التطبيق في المتصفح.", soon: (p: string) => `اقتربت صلاة ${p}`, inMin: (m: number) => `بعد ${m} دقيقة`, time: (p: string) => `حان وقت صلاة ${p}`,
-    morningBody: "حان وقت أذكار الصباح", eveningBody: "حان وقت أذكار المساء", sleepBody: "لا تنسَ أذكار النوم", toggle: "تبديل الوضع", tasbeeh: "تسبيح",
+    morningBody: "حان وقت أذكار الصباح", eveningBody: "حان وقت أذكار المساء", sleepBody: "لا تنسَ أذكار النوم", toggle: "تبديل الوضع", tasbeeh: "تسبيح", followUs: "تابنا على إنستغرام",
   },
   en: {
     appName: "Hisn Adhkar", next: "Next prayer", locating: "Detecting your location...", locUnsupported: "Your browser doesn't support location", locFail: "Couldn't get your location. Please allow location access.",
@@ -96,7 +96,7 @@ const DICT = {
     adhanAlert: "Adhan alert", before: "Reminder before prayer", minutes: (m: number) => `${m} min`, none: "Off", adhkarAlert: "Adhkar reminders (morning/evening/sleep)", testAlert: "Test alert", test: "Test",
     testTitle: "Test", testBody: "This is how the alert will look", recitations: "Recitations", recitationsDesc: "Recorded human voice; verses by Sheikh Mishary Alafasy", dark: "Dark mode", language: "Language",
     note: "Alerts work while the app is open in your browser.", soon: (p: string) => `${p} prayer is approaching`, inMin: (m: number) => `In ${m} minutes`, time: (p: string) => `It's time for ${p} prayer`,
-    morningBody: "Time for morning adhkar", eveningBody: "Time for evening adhkar", sleepBody: "Don't forget your sleep adhkar", toggle: "Toggle theme", tasbeeh: "Tasbeeh",
+    morningBody: "Time for morning adhkar", eveningBody: "Time for evening adhkar", sleepBody: "Don't forget your sleep adhkar", toggle: "Toggle theme", tasbeeh: "Tasbeeh", followUs: "Follow us on Instagram",
   },
   hi: {
     appName: "हिस्न अज़कार", next: "अगली नमाज़", locating: "आपकी लोकेशन ढूँढी जा रही है...", locUnsupported: "आपका ब्राउज़र लोकेशन सपोर्ट नहीं करता", locFail: "लोकेशन नहीं मिल सकी। कृपया लोकेशन की अनुमति दें।",
@@ -108,7 +108,7 @@ const DICT = {
     adhanAlert: "अज़ान अलर्ट", before: "नमाज़ से पहले याद दिलाएँ", minutes: (m: number) => `${m} मिनट`, none: "बंद", adhkarAlert: "अज़कार रिमाइंडर (सुबह/शाम/सोना)", testAlert: "अलर्ट जाँचें", test: "जाँचें",
     testTitle: "जाँच", testBody: "अलर्ट ऐसा दिखेगा", recitations: "तिलावत", recitationsDesc: "रिकॉर्ड की गई मानव आवाज़; आयतें शेख़ मिशारी अल-अफ़ासी की आवाज़ में", dark: "डार्क मोड", language: "भाषा",
     note: "अलर्ट तभी काम करते हैं जब ऐप ब्राउज़र में खुला हो।", soon: (p: string) => `${p} की नमाज़ क़रीब है`, inMin: (m: number) => `${m} मिनट में`, time: (p: string) => `${p} की नमाज़ का समय हो गया`,
-    morningBody: "सुबह के अज़कार का समय", eveningBody: "शाम के अज़कार का समय", sleepBody: "सोने के अज़कार न भूलें", toggle: "थीम बदलें", tasbeeh: "तस्बीह",
+    morningBody: "सुबह के अज़कार का समय", eveningBody: "शाम के अज़कार का समय", sleepBody: "सोने के अज़कार न भूलें", toggle: "थीम बदलें", tasbeeh: "तस्बीह", followUs: "इंस्टाग्राम पर हमें फ़ॉलो करें",
   },
 };
 type Dict = typeof DICT.ar;
@@ -505,6 +505,7 @@ function SettingsTab({ s, setS, locate }: { s: Settings; setS: (f: (o: Settings)
       <section className="rounded-2xl border bg-card px-4">
         <Row label={t.recitations}><span className="max-w-48 text-end text-xs text-muted-foreground">{t.recitationsDesc}</span></Row>
         <Row label={t.dark}><Toggle v={s.dark} on={() => up({ dark: !s.dark })} /></Row>
+        <Row label={t.followUs}><a href="https://www.instagram.com/dowpe_1?stkn=Y3JlZTl5MDgxZ3I4" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-l from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] px-3 py-1 text-sm font-semibold text-white">📷 Instagram</a></Row>
       </section>
       <p className="text-center text-xs text-muted-foreground">{t.note}</p>
     </div>

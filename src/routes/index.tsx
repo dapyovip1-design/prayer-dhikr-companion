@@ -277,7 +277,7 @@ function App() {
 
   return (
     <LangCtx.Provider value={{ lang, t }}>
-    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-background pb-24">
+    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-background">
       <header className="relative overflow-hidden rounded-b-[28px] bg-gradient-to-br from-hero-from to-hero-to p-5 text-primary-foreground shadow-lg">
         <div className="flex items-center justify-between">
           <div>
@@ -294,6 +294,14 @@ function App() {
           </>) : <p className="text-sm">{locErr || t.locating}</p>}
         </div>
       </header>
+
+      <nav className="sticky top-0 z-10 flex justify-around border-b bg-card/95 py-2 backdrop-blur">
+        {(["🕌", "📖", "📿", "🤲", "⚙️"] as const).map((i, idx) => { const k = TABS[idx]!; const l = t.tabs[idx]; return (
+          <button key={k} onClick={() => setTab(k)} className={`flex flex-col items-center rounded-xl px-3 py-1 text-[11px] font-semibold ${tab === k ? "bg-secondary text-primary" : "text-muted-foreground"}`}>
+            <span className="text-lg">{i}</span>{l}
+          </button>
+        ); })}
+      </nav>
 
       <main
         className="flex-1 touch-pan-y p-4"
@@ -319,14 +327,6 @@ function App() {
         {tab === "duas" && <DuasTab />}
         {tab === "settings" && <SettingsTab s={s} setS={setS} locate={locate} />}
       </main>
-
-      <nav className="fixed inset-x-0 bottom-0 z-10 mx-auto flex max-w-md justify-around border-t bg-card/95 py-2 backdrop-blur">
-        {(["🕌", "📖", "📿", "🤲", "⚙️"] as const).map((i, idx) => { const k = TABS[idx]!; const l = t.tabs[idx]; return (
-          <button key={k} onClick={() => setTab(k)} className={`flex flex-col items-center rounded-xl px-3 py-1 text-[11px] font-semibold ${tab === k ? "bg-secondary text-primary" : "text-muted-foreground"}`}>
-            <span className="text-lg">{i}</span>{l}
-          </button>
-        ); })}
-      </nav>
     </div>
     </LangCtx.Provider>
   );

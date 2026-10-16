@@ -405,15 +405,19 @@ function AdhkarTab() {
               {lang !== "ar" && d.transliterationEn && <p className="mt-2 text-sm italic text-muted-foreground" dir="ltr">{d.transliterationEn}</p>}
               {lang !== "ar" && d.textEn && <p className="mt-2 text-sm" dir="ltr">{d.textEn}</p>}
               {(lang === "ar" ? d.virtueAr : d.virtueEn) && <p className="mt-2 text-xs text-muted-foreground">✨ {lang === "ar" ? d.virtueAr : d.virtueEn}</p>}
-              <div className="mt-3 flex items-center justify-between">
-                <button onClick={() => playing === d.id ? stop() : play(i, false)} className="rounded-full border px-3 py-1 text-sm">{playing === d.id ? `⏸ ${t.stop}` : `🔊 ${t.listen}`}</button>
+              <div className="mt-3 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <button onClick={() => playing === d.id ? stop() : play(i, false)} className="rounded-full border px-3 py-1 text-sm">{playing === d.id ? `⏸ ${t.stop}` : `🔊 ${t.listen}`}</button>
+                  <button onClick={() => setProg((p) => ({ ...p, [k]: 0 }))} disabled={c === 0} title={t.reset} aria-label={`${t.reset} — ${d.textAr.slice(0, 30)}`} className={`grid h-9 w-9 place-items-center rounded-full border transition-transform duration-300 active:-rotate-180 active:scale-90 ${c === 0 ? "opacity-30" : "text-primary"}`}>
+                    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg>
+                  </button>
+                </div>
                 <button disabled={fin} onClick={() => setProg((p) => ({ ...p, [k]: c + 1 }))} className={`min-w-24 rounded-xl px-4 py-2 font-bold ${fin ? "bg-primary/20 text-primary" : "bg-primary text-primary-foreground active:scale-95"}`}>{fin ? `✓ ${t.done}` : `${c} / ${d.count}`}</button>
               </div>
             </div>
           );
         })}
       </div>
-      <button onClick={() => setProg((p) => Object.fromEntries(Object.entries(p).filter(([k]) => !k.startsWith(cat + "_"))))} className="mt-4 w-full rounded-xl border py-2 text-sm text-muted-foreground">{t.reset}</button>
     </div>
   );
 }
